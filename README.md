@@ -30,9 +30,16 @@ $phobio->getProductSearch('iphone');
 ```
 
 ## Convenience Classes
-The library also provides convenience classes for QuoteRequest and InvoiceRequest.
+The library also provides the foloowing convenience classes for complex request objects:
+ - [QuoteRequest](#QuoteRequest)
+ - [InvoiceRequest](#InvoiceRequest)
+ - [UserRequest] (#UserRequest)
+ - [UpdateUserRequest] (#UpdateUserRequest)
+ - [AuthenticatedURLRequest] (#AuthenticatedURLRequest)
 
-####QuoteRequest
+- - - 
+
+#### QuoteRequest ####
 The QuoteRequest class will allow you to construct a complex Quote, with multiple products and sales, and create the JSON request for the createQuote method.
 
 **Sample Code:**
@@ -83,7 +90,9 @@ print $quote->toJSON();
 
 The quote object is passed directly to ```createQuote()```
 
-####InvoiceRequest
+- - - 
+
+#### InvoiceRequest ####
 The InvoiceRequest class will allow you to construct a complex Invoice, with multiple products and sales, and create the request parameters for the createInvoice method. 
 
 **Sample Code:**
@@ -101,7 +110,85 @@ $invoice->setCustomerID('12344234234','drivers_license');
 //Add sales sku(s)
 $invoice->addSalesSku('1234567890ABCDEF');
 $invoice->addSalesSku('2345678901ABCDEF');
+
+//create the invoice
+$phobio->createInvoice($invoice);
 ?>
 ```
 
 The invoice object is passed directly to ```createInvoice()```
+
+- - - 
+
+#### UserRequest ####
+The UserRequest class will allow you to construct a user object for creating a user in Phobio. 
+
+**Sample Code:**
+```php
+<?php
+//Create a new user with email, first name, last name, and company_location_uid
+$user = new Phobio_UserRequest('gooduser@test.com','Good','User',8900000000);
+//Set the user as a company manager
+$user->setIsCompanyManager();
+
+$user->setExternalUID('MYCO-GU-123');
+//Either a username or exernal UID are required
+//$user->setUsername('goodUser123');
+
+//Set a phone number
+$user->setPhone('2125551212');
+//Set a password
+$user->setPassword('myG00dP4$5');
+
+//create the user
+$phobio->createUser($user)
+?>
+```
+
+The user object is passed directly to ```createUser()```
+
+- - - 
+
+#### UpdateUserRequest ####
+The UpdateUserRequest object will allow you to update an existing user. It can be created from a username, or statically from the response of the ```getUser()``` call.
+
+**Sample Code:**
+```php
+<?php
+//Create a new update user from username
+$updateUserFromUsername = new Phobio_UpdateUserRequest('guser');
+
+//Get a user from Phobio
+$storedUser = $phobio->getUser('guser');
+//Create an update user from a Phobio user response
+$updateUser = Phobio_UpdateUserRequest::createFromUserObject($storedUser);
+
+//toggle user active state
+$updateUser->setIsActive(false);
+
+//save the user update 
+$phobio->updateUser($updateUser)
+?>
+```
+
+The updateuser object is passed directly to ```updateUser()```
+
+- - - 
+
+#### AuthenticatedURLRequest ####
+The AuthenticatedURLRequest object will allow you to construct a complex AuthenticatedURL object, providing methods to easily add multiple skus and/or customer ids and properly encode.
+
+**Sample Code:**
+```php
+<?php
+$url = new Phobio_AuthenticatedURLRequest();
+$url->addSku('sku1');
+$url->addSku('sku2');
+
+$url->setCustomerName('Good','Customer');
+
+//reques the authenticated URL
+$phobio->getAuthenticatedURL('embedded_trade_flow',$url);
+?>
+```
+The authenticatedurl object is passed directly to ```getAuthenticatedURL()```

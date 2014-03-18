@@ -4,6 +4,9 @@ define('PHOBIO_DEFAULT_PER_PAGE',30);
 
 require_once(dirname(__FILE__).'/phobio/quoterequest.class.php');
 require_once(dirname(__FILE__).'/phobio/invoicerequest.class.php');
+require_once(dirname(__FILE__).'/phobio/userrequest.class.php');
+require_once(dirname(__FILE__).'/phobio/updateuserrequest.class.php');
+require_once(dirname(__FILE__).'/phobio/authenticatedurlrequest.class.php');
 
 class Phobio {
 	var $username;
@@ -81,13 +84,31 @@ class Phobio {
 		return $this->_makeAuthenticatedRequest("shipments/$shipment_id");
 	}
 	
+	public function createUser(Phobio_UserRequest $user) {
+		return $this->_makeAuthenticatedRequest("users/",$user->toArray(),'POST');
+	}
+	
+	public function updateUser(Phobio_UpdateUserRequest $user) {
+		return $this->_makeAuthenticatedRequest("users/$user->username/",$user->toArray(),'PUT');
+	}
+	
+	public function getUser($username) {
+		return $this->_makeAuthenticatedRequest("users/$username");
+	}
+	
+	public function deleteUser($username) {
+		return $this->_makeAuthenticatedRequest("users/$username/",'','DELETE');
+	}
+	
 	public function getTermsAndConditions() {
 		return $this->_makeAuthenticatedRequest("terms/");
 	}
 	
-	public function getAuthenticatedURL($web_app_slug,$params='') {
+	public function getAuthenticatedURL($web_app_slug,Phobio_AuthenticatedURLRequest $urlRequest) {
 		$slugs = array('embedded_trade_flow','tools','dashboards_and_analytics','trade_reports','shipments','device_erasures','shipping_supplies');
 		if ( !in_array($web_app_slug,$slugs) ) die("$web_app_slug is not in list of recognized apps");
+		if ( $urlRequest ) 
+			$params = $urlRequest->toArray();
 		return $this->_makeAuthenticatedRequest("urls/$web_app_slug/",$params);
 	}
 	
@@ -115,6 +136,7 @@ class Phobio {
 		
 		if ( $method == 'GET' ) {
 			if ( $params ) $full_url = $full_url.'?'.http_build_query_flat($params);
+			print $full_url;
 		} elseif ( $method == 'POST' ) {
 			curl_setopt($ch, CURLOPT_POST, true );
 			if ( $params ) {
